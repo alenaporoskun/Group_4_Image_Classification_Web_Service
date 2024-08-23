@@ -28,7 +28,7 @@ Project is mainly based on:
 ## Settings
 
 1. **Install dependencies with Poetry:**
-   Make sure Poetry is installed on your system. If not, install it using:
+   **Make sure Poetry is installed on your system. If not, install it using:**
    pip install poetry
 
 2. **Install dependencies:**
@@ -40,10 +40,10 @@ Project is mainly based on:
 ## Using
 
 1. **Start the server:**
-   If you run the project locally without Docker:
+   **If you run the project locally without Docker:**
    poetry run python manage.py runserver
 
-   If you run the project in a Docker container:
+   **If you run the project in a Docker container:**
    docker-compose up
 
 2. **Access to the service:**
