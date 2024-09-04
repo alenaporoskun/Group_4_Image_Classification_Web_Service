@@ -1,4 +1,4 @@
-import os
+﻿import os
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -19,6 +19,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['classifyme.onrender.com', '127.0.0.1']
+
+CSRF_TRUSTED_ORIGINS = ['https://classifyme.onrender.com']
 
 
 # Application definition
