@@ -1,10 +1,8 @@
 
 # ClassifyMe - Image Classification Web Service
 
-You can see the project on render.com:
-```
-https://classifyme.onrender.com/
-```
+You can see the project on render.com: [https://classifyme.onrender.com/](https://classifyme.onrender.com)
+
 
 ## Introduction
 ClassifyMe is a web-based image classification service built on the Django web platform, utilizing TensorFlow and other dependencies. The primary goal of this project is to classify images into one of the following categories: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, and truck. This classification assists clients in labeling their unlabeled images, aiding their model in learning to generate new images. The project is fully configured to operate within a Docker container environment.
