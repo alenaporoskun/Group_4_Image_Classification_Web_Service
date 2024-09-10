@@ -1,42 +1,77 @@
+import os
 from django.http import JsonResponse
 from django.views.generic import TemplateView
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-import os
-
-from tensorflow.keras.models import load_model
+import cloudinary.uploader
+import cloudinary
+import cloudinary.api
 import numpy as np
-from tensorflow.keras.preprocessing import image
+from PIL import Image
+from tensorflow import keras
+import logging
+import aiohttp
+from io import BytesIO
+import asyncio
 
+# Set up logging
+logger = logging.getLogger(__name__)
 
-def image_classification(img_path):
-    img_path = img_path[1:]
-    images_classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-    model = load_model('model/cifar-10.keras')
+# Load the model once when the application starts
+MODEL_PATH = 'model/cifar-10.keras'
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(f"Model file not found: {MODEL_PATH}")
+model = keras.models.load_model(MODEL_PATH)
 
-    img = image.load_img(img_path, target_size=(32, 32))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
+# Image classes
+images_classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
-    img_array = img_array / 255.0
+# Define the asynchronous function for image classification
+async def image_classification(image_url):
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(image_url) as response:
+                img_data = await response.read()
+                img = Image.open(BytesIO(img_data))
+                img = img.convert('RGB')  # Convert the image to RGB
+                img = img.resize((32, 32))  # Resize the image to 32x32
+                img_array = np.expand_dims(np.array(img) / 255.0, axis=0)  # Add batch dimension and normalize
 
-    predictions = model.predict(img_array)
-    predicted_class = np.argmax(predictions, axis=-1)
+                # Predict the image class
+                predictions = model.predict(img_array)
+                predicted_class = np.argmax(predictions, axis=-1)
 
-    return images_classes[predicted_class[0]]
+                return images_classes[predicted_class[0]]
+    except Exception as e:
+        logger.error(f"Error during image classification: {e}")
+        return str(e)
 
-
-
+# Define the asynchronous IndexView class
 class IndexView(TemplateView):
     template_name = 'main/index.html'
 
-    def post(self, request, *args, **kwargs):
+    async def post(self, request, *args, **kwargs):
         if request.FILES.get('image'):
-            uploaded_file = request.FILES['image']
-            file_name = default_storage.save(uploaded_file.name, ContentFile(uploaded_file.read()))
-            file_url = default_storage.url(file_name)
+            try:
+                # Get the uploaded file
+                uploaded_file = request.FILES['image']
 
-            result = image_classification(file_url)
+                # Upload the file to Cloudinary
+                upload_result = cloudinary.uploader.upload(uploaded_file)
+                image_url = upload_result['url']  # Get the URL of the uploaded image
 
-            return JsonResponse({'result': result, 'image_url': file_url})
-        return JsonResponse({'result': None, 'image_url': None})
+                # Classify the image
+                result = await image_classification(image_url)
+
+                # Return the result
+                return JsonResponse({'result': result})
+            except Exception as e:
+                # Log and return the error in JSON format
+                logger.error(f"Error uploading or processing the file: {e}")
+                return JsonResponse({'error': str(e)}, status=500)
+        # If no image is uploaded
+        return JsonResponse({'result': None})
+
+    async def get(self, request, *args, **kwargs):
+        return self.render_to_response({})
+
+
+

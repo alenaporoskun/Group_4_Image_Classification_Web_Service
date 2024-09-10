@@ -1,6 +1,0 @@
-django
-django-environ
-numpy
-tensorflow
-Pillow
-python-dotenv

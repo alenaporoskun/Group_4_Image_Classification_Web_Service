@@ -292,12 +292,10 @@
 <!-- Portfolio Section -->
 <section id="portfolio" class="portfolio cta">
   <div class="container-fluid" data-aos="zoom-in">
-
     <div class="section-title text-center">
       <h3>Image Classification</h3>
-      <p>Upload an image and get it classified</p>
+      <p>Upload an image from CIFAR-10 categories (airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck) and get it classified</p>
     </div>
-
     <div class="row justify-content-center">
       <div class="col-lg-6">
         <form id="image-form" action="{% url 'index' %}" method="post" enctype="multipart/form-data" class="php-email-form text-center">
@@ -319,56 +317,76 @@
         </div>
       </div>
     </div>
-
   </div>
-</section><!-- End Portfolio Section -->
+</section>
 
 <script>
   document.getElementById('image').addEventListener('change', function(event) {
     const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.style.width = '20%'; // Встановлюємо ширину зображення 20% від вихідного розміру
-            document.getElementById('image-preview').innerHTML = '';
-            document.getElementById('image-preview').appendChild(img);
-            document.getElementById('classify-btn').disabled = false;
-            
-            // Очищення попереднього результату та приховування блоку з результатом
-            document.getElementById('classification-result').innerText = '';
-            document.getElementById('result-box').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+    
+    // Checking the file type (PNG and JPEG only)
+    if (file && (file.type === 'image/png' || file.type === 'image/jpeg')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.width = '15%'; // Set the width of the image to 15% of the container
+        document.getElementById('image-preview').innerHTML = '';
+        document.getElementById('image-preview').appendChild(img);
+        document.getElementById('classify-btn').disabled = false;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('Please upload a valid image file (PNG or JPEG)');
+      document.getElementById('classify-btn').disabled = true;
     }
-});
+  });
 
   document.getElementById('classify-btn').addEventListener('click', function() {
     const form = document.getElementById('image-form');
     const formData = new FormData(form);
 
+    // Show pending message
+    document.getElementById('classification-result').innerText = 'Classifying image, please wait...';
+    document.getElementById('result-box').style.display = 'block';
+
     fetch(form.action, {
       method: 'POST',
       body: formData,
       headers: {
-        'X-CSRFToken': '{{ csrf_token }}'
+        'X-CSRFToken': getCookie('csrftoken') // Use getCookie function to get CSRF token
       }
     })
     .then(response => response.json())
     .then(data => {
-      document.getElementById('classification-result').innerText = data.result;
-      document.getElementById('result-box').style.display = 'block';
-      if (data.image_url) {
-        const img = document.createElement('img');
-        img.src = data.image_url;
-        img.style.width = '20%'; // Встановлюємо ширину зображення 20% від вихідного розміру
-        document.getElementById('image-preview').innerHTML = '';
-        document.getElementById('image-preview').appendChild(img);
+      if (data.result) {
+        document.getElementById('classification-result').innerText = data.result;
+      } else if (data.error) {
+        document.getElementById('classification-result').innerText = `Error: ${data.error}`;
       }
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+      document.getElementById('classification-result').innerText = `Error occurred: ${error}`;
+      console.error('Error:', error);
+    });
   });
+
+  // Function to get cookie value
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; cookies.length > i; i++) {
+        const cookie = cookies[i].trim();
+        // Check if the cookie string starts with the name we are looking for
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
 </script>
 <!-- End Portfolio Section -->
 

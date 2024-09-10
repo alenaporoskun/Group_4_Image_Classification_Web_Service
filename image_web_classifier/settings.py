@@ -1,6 +1,9 @@
 ﻿import os
 from pathlib import Path
 from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 load_dotenv()
 
@@ -16,12 +19,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['classifyme.onrender.com', '127.0.0.1']
+ALLOWED_HOSTS = ['.koyeb.app', 'localhost', '127.0.0.1', ".onrender.com", ".vercel.app", "cloudinary.com"]
 
 CSRF_TRUSTED_ORIGINS = ['https://classifyme.onrender.com']
 
+CSRF_TRUSTED_ORIGINS = ['https://classifyme.koyeb.app', 'https://localhost', 'https://127.0.0.1', "https://.onrender.com", "https://.cloudinary.com"]
 
 # Application definition
 
@@ -32,11 +36,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary',
+    'cloudinary_storage',
     'main',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -113,16 +120,54 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Указываем директорию для собранных статических файлов
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Шлях до директорії, де зберігатимуться завантажені файли
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# URL-адреса для доступу до завантажених файлів
-MEDIA_URL = '/media/'
+# # Шлях до директорії, де зберігатимуться завантажені файли
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+#
+# # URL-адреса для доступу до завантажених файлів
+# MEDIA_URL = 'media/'
+
+
+# Cloudinary settings
+
+CLOUDINARY_NAME=os.getenv('CLOUD_NAME')
+CLOUDINARY_API_KEY=os.getenv('API_KEY')
+CLOUDINARY_API_SECRET=os.getenv('API_SECRET')
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET
+)
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'DEBUG',
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
