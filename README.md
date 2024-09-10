@@ -56,9 +56,12 @@ Project is mainly based on:
    ```
 
 5. **Set environment variables:**  
-   Create an ```.env``` file in the root of the project and add the necessary environment variables if needed. For example:
+   Create an ```.env``` file in the root of the project and add the necessary environment variables if needed (SECRET_KEY for Django, CLOUD_NAME, API_KEY, API_SECRET for claudinary). For example:
 ```
-SECRET_KEY=django-insecure-oc^irpj3$!sjy&j$@q!4mq(!7&5k2tnc1urvjz$)x2cf46fl9a
+SECRET_KEY=
+CLOUD_NAME=
+API_KEY=
+API_SECRET=
 ```
 ## Using
 
